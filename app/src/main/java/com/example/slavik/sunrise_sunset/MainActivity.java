@@ -59,13 +59,12 @@ public class MainActivity extends Activity implements View.OnClickListener,Googl
     PlaceAutocompleteFragment autoCompleteFragment;
 
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ActivityCompat.requestPermissions(this,
-                new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                REQUEST_LOCATION);
         setContentView(R.layout.activity_main);
+        Toast.makeText(MainActivity.this, "Turn on geolocation on your smartphone.", Toast.LENGTH_LONG).show();
 
         dialog = new Dialog(MainActivity.this);
         dialog.setContentView(R.layout.activity_search);
@@ -153,15 +152,20 @@ public class MainActivity extends Activity implements View.OnClickListener,Googl
     }
 
     public void onPlaceLikelihood(View view){
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_LOCATION);
+        }else
         if (mGoogleApiClient != null){
-            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){}
+
             PendingResult<PlaceLikelihoodBuffer> result = Places.PlaceDetectionApi.getCurrentPlace(mGoogleApiClient,null);
 
             result.setResultCallback(new ResultCallback<PlaceLikelihoodBuffer>() {
                 @Override
                 public void onResult(@NonNull PlaceLikelihoodBuffer placeLikelihoods) {
                     if (placeLikelihoods.getCount() <= 0){
-                         Toast.makeText(MainActivity.this, "Turn on geolocation on your smartphone and try again.", Toast.LENGTH_SHORT).show();
+                         Toast.makeText(MainActivity.this, "Turn on geolocation on your smartphone and try again.", Toast.LENGTH_LONG).show();
                     }
                     for (PlaceLikelihood placeLikelihood: placeLikelihoods){
                         places = placeLikelihood.getPlace().getName()+ "\n"
