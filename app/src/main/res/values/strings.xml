@@ -1,9 +1,5 @@
 <resources>
     <string name="app_name">Sunrise-Sunset</string>
     <string name="show_your_place">Show your place result</string>
-    <string name="show_other_place">Show other place result</string>
-    <string name="Call">Call result</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="switch_on_network">On your GPS ? </string>
 </resources>

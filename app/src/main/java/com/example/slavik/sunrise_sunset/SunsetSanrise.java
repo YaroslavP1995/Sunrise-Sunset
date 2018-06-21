@@ -7,7 +7,7 @@ import com.google.gson.annotations.SerializedName;
  * Created by Slavik on 10.06.2018.
  */
 
-public class Results_ {
+public class SunsetSanrise {
     @SerializedName("sunrise")
     @Expose
     private String sunrise;

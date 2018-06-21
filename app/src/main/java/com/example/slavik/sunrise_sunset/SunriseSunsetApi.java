@@ -11,7 +11,7 @@ import retrofit2.http.Query;
 public interface SunriseSunsetApi {
 
      @GET("/json")
-     Call<Results> getData(@Query("lat") double lat, @Query("lng") double lng,@Query("formatted") int formated);
+     Call<Results> getData(@Query("lat") double lat, @Query("lng") double lng,@Query("formatted") int formatted);
 
 
 

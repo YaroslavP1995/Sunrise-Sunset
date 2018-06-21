@@ -6,16 +6,16 @@ import com.google.gson.annotations.SerializedName;
 public  class Results {
     @SerializedName("results")
     @Expose
-    private Results_ results;
+    private SunsetSanrise results;
     @SerializedName("status")
     @Expose
     private String status;
 
-    public Results_ getResults() {
+    public SunsetSanrise getResults() {
         return results;
     }
 
-    public void setResults(Results_ results) {
+    public void setResults(SunsetSanrise results) {
         this.results = results;
     }
 
