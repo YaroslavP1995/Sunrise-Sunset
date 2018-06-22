@@ -1,9 +1,7 @@
 package com.example.slavik.sunrise_sunset;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
@@ -51,6 +49,7 @@ public class MainActivity extends Activity implements View.OnClickListener,Googl
     private double lng;
     private String places;
     PlaceAutocompleteFragment autoCompleteFragment;
+    private String ACCESS_FINE_LOCATION;
 
     public static boolean geolocationEnabled = false;
 
@@ -59,7 +58,6 @@ public class MainActivity extends Activity implements View.OnClickListener,Googl
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toast.makeText(MainActivity.this, "Turn on geolocation on your smartphone.", Toast.LENGTH_LONG).show();
         textViewResultLocation = (TextView) findViewById(R.id.textView_result_location);
         textViewResultSun = (TextView) findViewById(R.id.textView_reusult_sun);
         Button showYourResultLoc = (Button) findViewById(R.id.call_your_result);
@@ -82,16 +80,19 @@ public class MainActivity extends Activity implements View.OnClickListener,Googl
 
         showYourResultLoc.setOnClickListener(this);
         sunriseSunsetApi = retrofit.create(SunriseSunsetApi.class);
+
     }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.call_your_result:
-                checkLocationServiceEnabled();
+                askMyPermission();
                 onPlaceLikelihood(textViewResultLocation);
                 break;
         }
     }
+
     public void showResult(double lat,double lng){
             sunriseSunsetApi.getData(lat, lng, 0).enqueue(new Callback<Results>() {
                 @Override
@@ -100,34 +101,41 @@ public class MainActivity extends Activity implements View.OnClickListener,Googl
                     textViewResultSun.setText(response.body().getResults().getSunrise()+
                             " Sunrise"+"\n"+response.body().getResults().getSunset()+" Sunset" );
                 }
+
                 @Override
                 public void onFailure(@NonNull Call<Results> call, @NonNull Throwable t) {
                     Log.i(TAG, "onResponse of");
                 }
             });
     }
+
     @Override
     protected void onStart() {
         super.onStart();
         mGoogleApiClient.connect();
     }
+
     @Override
     protected void onStop() {
         super.onStop();
         mGoogleApiClient.disconnect();
     }
+
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         showOtherPlace(textViewResultLocation);
     }
+
     @Override
     public void onConnectionSuspended(int i) {
         Toast.makeText(this, "onConnectionSuspended", Toast.LENGTH_LONG).show();
     }
+
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         Toast.makeText(this, "onConnectionFailed", Toast.LENGTH_LONG).show();
     }
+
     public void onPlaceLikelihood(View view){
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(this,
@@ -140,7 +148,7 @@ public class MainActivity extends Activity implements View.OnClickListener,Googl
                 @Override
                 public void onResult(@NonNull PlaceLikelihoodBuffer placeLikelihoods) {
                     if (placeLikelihoods.getCount() <= 0){
-                         Toast.makeText(MainActivity.this, "Turn on geolocation on your smartphone and try again.", Toast.LENGTH_LONG).show();
+                         Toast.makeText(MainActivity.this, "Place not found.", Toast.LENGTH_LONG).show();
                     }
                     for (PlaceLikelihood placeLikelihood: placeLikelihoods){
                         places = placeLikelihood.getPlace().getName()+ "\n"
@@ -158,6 +166,7 @@ public class MainActivity extends Activity implements View.OnClickListener,Googl
             Toast.makeText(MainActivity.this, "No GoogleApiClient", Toast.LENGTH_SHORT).show();
         }
     }
+
     public void showOtherPlace(View view){
         autoCompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
 
@@ -172,37 +181,24 @@ public class MainActivity extends Activity implements View.OnClickListener,Googl
                 lng = latLng.longitude;
                 showResult(lat,lng);
             }
+
             @Override
             public void onError(Status status) {
-                String st = status.getStatusMessage();
-                Toast.makeText(MainActivity.this, st, Toast.LENGTH_SHORT).show();
             }
         });
     }
-    private boolean checkLocationServiceEnabled() {
-        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        try {
-            geolocationEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        } catch (Exception ignored) {
-        }
-        return buildAlertMessageNoLocationService(geolocationEnabled);
-    }
-    private boolean buildAlertMessageNoLocationService(boolean network_enabled) {
-        String msg = !network_enabled ? getResources().getString(R.string.switch_on_network) : null;
 
-        if (msg != null) {
-            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setCancelable(false)
-                    .setMessage(msg)
-                    .setPositiveButton("Ок", new DialogInterface.OnClickListener() {
-                        public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                            startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
-                        }
-                    });
-            final AlertDialog alert = builder.create();
-            alert.show();
-            return true;
+    private void askMyPermission(){
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        geolocationEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        Log.i(TAG, "onRequest is on");
+        if(!geolocationEnabled){
+            startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
         }
-        return false;
+      }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 }
